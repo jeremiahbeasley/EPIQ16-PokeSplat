@@ -31,7 +31,7 @@ class Main is Game, KeyboardListener
     PerspectiveCamera camera = undefined
 
     // The character and the light
-    Model character
+    Model pikachu
     PointLight pikachuLight
 
     // The model for the walls and their color
@@ -97,22 +97,23 @@ class Main is Game, KeyboardListener
         Add(light)
 
         // Initialize character, his size and position
-        character:Load("Models/pikachu-pokemon-go-obj/pikachu-pokemon-go.obj")
-        character:Scale(0.05, 0.05, 0.05)
-        character:SetPosition(0, 0, 0)
-        Vector3 charactervector = character:GetGlobalPosition()
-        character:Rotate(charactervector, 90, false)
+        pikachu:Load("Models/pikachu-pokemon-go-obj/pikachu-pokemon-go.obj")
+        pikachu:Scale(0.05, 0.05, 0.05)
+        pikachu:SetPosition(0, 0, 0)
+        Vector3 pikachuvector = pikachu:GetGlobalPosition()
+        pikachu:Rotate(pikachuvector, 90, false)
         facing = 1
-        Add(character)
+        Add(pikachu)
 
         pikachuLight:SetColor(255, 255, 204, 1)
         pikachuLight:SetPosition(-1, 5, 0)
         pikachuLight:SetIntensity(100)
-        character:Add(pikachuLight)
+        pikachu:Add(pikachuLight)
 
 
 
-
+        // Add a keyboardListener to move the character
+        AddKeyboardListener(me)
     end
 
     /*
@@ -122,5 +123,96 @@ class Main is Game, KeyboardListener
         or to make creatures jump.
     */
     action Update(number seconds)
+
+        // Moves the character every update depending on the values of the 3 fields
+        pikachu:Move(positionX*seconds, positionY*seconds, positionZ*seconds)
+
+        if facing = 2
+        camera:SetPosition(pikachu:GetPosition():GetX(),pikachu:GetPosition():GetY(),pikachu:GetPosition():GetZ()-3)
+        else
+        camera:SetPosition(pikachu:GetPosition():GetX(),pikachu:GetPosition():GetY(),pikachu:GetPosition():GetZ()-3)
+        end
+        end
+
+    action PressedKey(KeyboardEvent event)
+        if event:keyCode = event:UP
+            MoveForward(speed)
+            if facing = 2
+            pikachu:Rotate(0,1,0, 180, false)
+            elseif facing = 3
+            pikachu:Rotate(0,1,0, -90, false)
+            elseif facing = 4
+            pikachu:Rotate(0,1,0, 90, false)
+            end
+            facing = 1
+        elseif event:keyCode = event:DOWN
+            MoveBackward(speed)
+            if facing = 1
+            pikachu:Rotate(0,1,0, 180, false)
+            elseif facing = 3
+            pikachu:Rotate(0,1,0, 90, false)
+            elseif facing = 4
+            pikachu:Rotate(0,1,0, -90, false)
+            end
+            facing = 2
+        elseif event:keyCode = event:LEFT
+            StrafeLeft(speed)
+            if facing = 4
+            pikachu:Rotate(0,1,0, 180, false)
+            elseif facing = 2
+            pikachu:Rotate(0,1,0, -90, false)
+            elseif facing = 1
+            pikachu:Rotate(0,1,0, 90, false)
+            end
+            facing = 3
+        elseif event:keyCode = event:RIGHT
+            StrafeRight(speed)
+            if facing = 3
+            pikachu:Rotate(0,1,0, 180, false)
+            elseif facing = 1
+            pikachu:Rotate(0,1,0, -90, false)
+            elseif facing = 2
+            pikachu:Rotate(0,1,0, 90, false)
+            end
+            facing = 4
+        end
     end
+
+
+    action ReleasedKey(KeyboardEvent event)
+        positionX = 0      
+        positionY = 0
+        positionZ = 0
+    end
+
+    action MoveForward(number speed) 
+        positionX = speed       // we move forward
+        positionY = 0
+        positionZ = 0
+    end
+
+    action MoveBackward(number speed)
+        positionX = -speed       // we move forward
+        positionY = 0
+        positionZ = 0    
+    end
+    
+    action StrafeLeft(number speed)
+        positionX = 0      // we move forward
+        positionY = 0
+        positionZ = speed
+    end
+
+    action StrafeRight(number speed)
+        positionX = 0      // we move forward
+        positionY = 0
+        positionZ = -speed
+    end
+
+    action StopCharacter()
+        positionX = 0      
+        positionY = 0
+        positionZ = 0
+    end
+
 end
