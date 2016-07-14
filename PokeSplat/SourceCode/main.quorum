@@ -1,4 +1,18 @@
 use Libraries.Game.Game
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.PerspectiveCamera
+use Libraries.Game.Layer3D
+use Libraries.Game.Graphics.AmbientLight
+use Libraries.Game.Graphics.DirectionalLight
+use Libraries.Interface.Events.KeyboardListener
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Game.Audio3D
+use Libraries.Game.Graphics.Label
+use Libraries.Sound.Speech
+use Libraries.Compute.Vector3
 
 /*
     This is a default class for creating a game in Quorum. Note that the Main 
@@ -7,11 +21,55 @@ use Libraries.Game.Game
     assets, like images to be displayed, frames of animation, or sounds to be
     played. 
 */
-class Main is Game
+class Main is Game, KeyboardListener
     /*
         This action, Main, starts our computer program. In Quorum, programs always
         begin from Main.
     */
+
+    // The camera
+    PerspectiveCamera camera = undefined
+
+    // The character and the light
+    Model character
+    PointLight pointLight
+
+    // The model for the walls and their color
+    Model wallLeft
+    Model wallRight
+    Color grey
+    Color red
+
+    // The speed of the character when he moves
+    number speed = 8
+
+    // These are the values that we will use to move the character
+    number positionX = 0
+    number positionY = 0
+    number positionZ = 0
+
+    number facing = 0
+
+    // The floor
+    Model floor
+
+    // The first box made
+    Model box1
+    Model box2
+    //Color of the first box
+    Color colorBox1
+    Color colorBox2
+    // Adds sound to the first box
+    Audio3D soundCar1
+    Audio3D soundCar2
+
+    // Sets up the end goal of the game
+    Model goal
+    boolean isTouched = false
+    boolean badEnding = true
+    Label gameOverZone
+    Speech talk
+    number speakerLimit = 0
     action Main
         StartGame()
     end
@@ -23,6 +81,25 @@ class Main is Game
         or a Libraries.Interface.TextBox for gathering user input in a game.
     */
     action CreateGame
+        // Initialize camera position, and direction
+        camera = cast(PerspectiveCamera,GetCamera3D())
+        camera:SetPosition(0, 0, -4)
+        camera:LookAt(0, 3, 0)
+        //camera:SetUp(0,0,0)
+
+        // Initialize character, his size and position
+        character:Load("Models/pikachu-pokemon-go-obj/pikachu-pokemon-go.obj")
+        character:Scale(0.05, 0.05, 0.05)
+        character:SetPosition(0, 0, 0)
+        Vector3 charactervector = character:GetGlobalPosition()
+        character:Rotate(charactervector, 90, false)
+        facing = 1
+        Add(character)
+
+        AmbientLight ambient
+        ambient:SetColor(255, 255, 204, 1)
+        SetAmbientLight(ambient)
+
     end
 
     /*
