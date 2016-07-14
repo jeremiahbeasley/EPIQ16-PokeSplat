@@ -32,7 +32,7 @@ class Main is Game, KeyboardListener
 
     // The character and the light
     Model character
-    PointLight pointLight
+    PointLight pikachuLight
 
     // The model for the walls and their color
     Model wallLeft
@@ -87,6 +87,15 @@ class Main is Game, KeyboardListener
         camera:LookAt(0, 3, 0)
         //camera:SetUp(0,0,0)
 
+        AmbientLight ambient
+        ambient:SetColor(255, 255, 204, 1)
+        SetAmbientLight(ambient)
+
+        DirectionalLight light
+        light:SetColor(0.86, 1, 0.97, 1)
+        light:SetDirection(0.1, -1, 1)
+        Add(light)
+
         // Initialize character, his size and position
         character:Load("Models/pikachu-pokemon-go-obj/pikachu-pokemon-go.obj")
         character:Scale(0.05, 0.05, 0.05)
@@ -96,9 +105,13 @@ class Main is Game, KeyboardListener
         facing = 1
         Add(character)
 
-        AmbientLight ambient
-        ambient:SetColor(255, 255, 204, 1)
-        SetAmbientLight(ambient)
+        pikachuLight:SetColor(255, 255, 204, 1)
+        pikachuLight:SetPosition(-1, 5, 0)
+        pikachuLight:SetIntensity(100)
+        character:Add(pikachuLight)
+
+
+
 
     end
 
