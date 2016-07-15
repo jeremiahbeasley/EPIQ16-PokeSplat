@@ -13,6 +13,10 @@ use Libraries.Game.Audio3D
 use Libraries.Game.Graphics.Label
 use Libraries.Sound.Speech
 use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Layer2D
+use Libraries.Compute.Random
 
 /*
     This is a default class for creating a game in Quorum. Note that the Main 
@@ -54,14 +58,16 @@ class Main is Game, KeyboardListener
     Model floor
 
     // The first box made
-    Model box1
-    Model box2
+    Model pball1
+    Model pball2
+    Model pball3
     //Color of the first box
     Color colorBox1
     Color colorBox2
     // Adds sound to the first box
-    Audio3D soundCar1
-    Audio3D soundCar2
+    Audio3D pball1Sound
+    Audio3D pball2Sound
+    Audio3D pball3Sound
 
     // Sets up the end goal of the game
     Model goal
@@ -70,6 +76,16 @@ class Main is Game, KeyboardListener
     Label gameOverZone
     Speech talk
     number speakerLimit = 0
+    Texture textureSky
+    Texture textureGrass
+    Drawable sky
+    Drawable grass
+    Random pikachuTalkRandom
+    Audio3D pikachuTalk
+    Audio3D ashTalk
+   integer pikachuTalkTimer = 0
+
+
     action Main
         StartGame()
     end
@@ -81,12 +97,10 @@ class Main is Game, KeyboardListener
         or a Libraries.Interface.TextBox for gathering user input in a game.
     */
     action CreateGame
-        // Initialize camera position, and direction
-        camera = cast(PerspectiveCamera,GetCamera3D())
-        camera:SetPosition(0, 0, -4)
-        camera:LookAt(0, 3, 0)
-        //camera:SetUp(0,0,0)
+        
 
+
+        // Initialize camera position, and direction
         AmbientLight ambient
         ambient:SetColor(255, 255, 204, 1)
         SetAmbientLight(ambient)
@@ -95,6 +109,17 @@ class Main is Game, KeyboardListener
         light:SetColor(0.86, 1, 0.97, 1)
         light:SetDirection(0.1, -1, 1)
         Add(light)
+
+        Layer2D layer   
+        AddLayer(0, layer)  
+        textureSky:LoadFromFile("Models/sky.jpg")
+        sky:Load(textureSky)
+        sky:Scale(0.40)
+        textureGrass:LoadFromFile("Models/grass.jpg")
+        grass:Load(textureGrass)
+        grass:Scale(0.40)
+        layer:Add(sky)
+        layer:Add(grass)
 
         // Initialize character, his size and position
         pikachu:Load("Models/pikachu-pokemon-go-obj/pikachu-pokemon-go.obj")
@@ -105,10 +130,27 @@ class Main is Game, KeyboardListener
         facing = 1
         Add(pikachu)
 
-        pikachuLight:SetColor(255, 255, 204, 1)
-        pikachuLight:SetPosition(-1, 5, 0)
-        pikachuLight:SetIntensity(100)
+        pikachuTalk:Load("Sounds/pikachu.ogg")
+
+
+        pikachuLight:SetColor(255, 255, 204, 50)
+        pikachuLight:SetPosition(-1, 1, 1)
+        pikachuLight:SetIntensity(5)
         pikachu:Add(pikachuLight)
+
+        camera = cast(PerspectiveCamera,GetCamera3D())
+ //       camera:SetPosition(0, -3, -2)
+        camera:LookAt(0, 1, 0)
+        camera:SetPosition(pikachu:GetPosition():GetX(),pikachu:GetPosition():GetY()+4,pikachu:GetPosition():GetZ()-3)
+
+        ashTalk:Load("Sounds/Ash-letsgo.ogg")
+        ashTalk:SetVolume(0.8)
+        ashTalk:Play()
+ 
+
+
+
+
 
 
 
@@ -125,54 +167,70 @@ class Main is Game, KeyboardListener
     action Update(number seconds)
 
         // Moves the character every update depending on the values of the 3 fields
-        pikachu:Move(positionX*seconds, positionY*seconds, positionZ*seconds)
 
-        if facing = 2
-        camera:SetPosition(pikachu:GetPosition():GetX(),pikachu:GetPosition():GetY(),pikachu:GetPosition():GetZ()-3)
-        else
-        camera:SetPosition(pikachu:GetPosition():GetX(),pikachu:GetPosition():GetY(),pikachu:GetPosition():GetZ()-3)
-        end
-        end
+ //           camera:RotateAround(pikachu:GetGlobalPosition(), yAxis, 3)
+        pikachu:Move(positionX*seconds, positionY*seconds, positionZ*seconds)
+        camera:SetPosition(pikachu:GetPosition():GetX(),pikachu:GetPosition():GetY()+4,pikachu:GetPosition():GetZ()-3)
+
+ //       integer pikachuTalkTimer = 0
+ //       if pikachuTalkTimer = 0
+     //TalkPikachu()
+ //       pikachuTalkRandom:RandomIntegerBetween(5, 10)
+ //       end
+ end
+
 
     action PressedKey(KeyboardEvent event)
         if event:keyCode = event:UP
             MoveForward(speed)
             if facing = 2
             pikachu:Rotate(0,1,0, 180, false)
+            TalkPikachu()
             elseif facing = 3
             pikachu:Rotate(0,1,0, -90, false)
+            TalkPikachu()
             elseif facing = 4
             pikachu:Rotate(0,1,0, 90, false)
+            TalkPikachu()
             end
             facing = 1
         elseif event:keyCode = event:DOWN
             MoveBackward(speed)
             if facing = 1
             pikachu:Rotate(0,1,0, 180, false)
+            TalkPikachu()
             elseif facing = 3
             pikachu:Rotate(0,1,0, 90, false)
+            TalkPikachu()
             elseif facing = 4
             pikachu:Rotate(0,1,0, -90, false)
+            TalkPikachu()
             end
             facing = 2
         elseif event:keyCode = event:LEFT
             StrafeLeft(speed)
             if facing = 4
             pikachu:Rotate(0,1,0, 180, false)
+            TalkPikachu()
             elseif facing = 2
             pikachu:Rotate(0,1,0, -90, false)
+            TalkPikachu()
             elseif facing = 1
             pikachu:Rotate(0,1,0, 90, false)
+            TalkPikachu()
             end
             facing = 3
         elseif event:keyCode = event:RIGHT
             StrafeRight(speed)
             if facing = 3
             pikachu:Rotate(0,1,0, 180, false)
+            TalkPikachu()
             elseif facing = 1
             pikachu:Rotate(0,1,0, -90, false)
+            TalkPikachu()
             elseif facing = 2
             pikachu:Rotate(0,1,0, 90, false)
+            TalkPikachu()
             end
             facing = 4
         end
@@ -214,5 +272,12 @@ class Main is Game, KeyboardListener
         positionY = 0
         positionZ = 0
     end
+
+    action TalkPikachu()
+        pikachuTalk:SetVolume(0.8)
+        pikachu:Add(pikachuTalk)
+        pikachuTalk:Play()
+    end
+
 
 end
