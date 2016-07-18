@@ -41,8 +41,11 @@ class Main is Game, KeyboardListener
     // The model for the walls and their color
     Model wallLeft
     Model wallRight
+    Model floor
     Color grey
     Color red
+    Color yellow
+    Color colorpball1
 
     // The speed of the character when he moves
     number speed = 8
@@ -51,11 +54,13 @@ class Main is Game, KeyboardListener
     number positionX = 0
     number positionY = 0
     number positionZ = 0
+    number vpositionX = 0
+    number vpositionY = 0
+    number vpositionZ = 0
 
     number facing = 0
+    number level = 1
 
-    // The floor
-    Model floor
 
     // The first box made
     Model pball1
@@ -78,16 +83,18 @@ class Main is Game, KeyboardListener
     number speakerLimit = 0
     Texture textureSky
     Texture textureGrass
-    Drawable sky
-    Drawable grass
+    Drawable space
     Random pikachuTalkRandom
     Audio3D pikachuTalk
     Audio3D ashTalk
-   integer pikachuTalkTimer = 0
-
+    integer pikachuTalkTimer = 0
+    Random random
 
     action Main
-        StartGame()
+    SetFullScreen(true)   
+    StartGame()
+        
+        
     end
 
     /*
@@ -106,27 +113,21 @@ class Main is Game, KeyboardListener
         SetAmbientLight(ambient)
 
         DirectionalLight light
-        light:SetColor(0.86, 1, 0.97, 1)
-        light:SetDirection(0.1, -1, 1)
+        light:SetColor(255, 255, 204, 1)
+        light:SetDirection(0, 0, -3)
         Add(light)
 
         Layer2D layer   
         AddLayer(0, layer)  
-        textureSky:LoadFromFile("Models/sky.jpg")
-        sky:Load(textureSky)
-        sky:Scale(0.40)
-        textureGrass:LoadFromFile("Models/grass.jpg")
-        grass:Load(textureGrass)
-        grass:Scale(0.40)
-        layer:Add(sky)
-        layer:Add(grass)
-
+        textureSky:LoadFromFile("Models/space.png")
+        space:Load(textureSky)
+        space:Scale(0.70)
+        layer:Add(space)
+ 
         // Initialize character, his size and position
         pikachu:Load("Models/pikachu-pokemon-go-obj/pikachu-pokemon-go.obj")
         pikachu:Scale(0.05, 0.05, 0.05)
         pikachu:SetPosition(0, 0, 0)
-        Vector3 pikachuvector = pikachu:GetGlobalPosition()
-        pikachu:Rotate(pikachuvector, 90, false)
         facing = 1
         Add(pikachu)
 
@@ -134,8 +135,8 @@ class Main is Game, KeyboardListener
 
 
         pikachuLight:SetColor(255, 255, 204, 50)
-        pikachuLight:SetPosition(-1, 1, 1)
-        pikachuLight:SetIntensity(5)
+        pikachuLight:SetPosition(-1, 5, 5)
+        pikachuLight:SetIntensity(1)
         pikachu:Add(pikachuLight)
 
         camera = cast(PerspectiveCamera,GetCamera3D())
@@ -146,11 +147,34 @@ class Main is Game, KeyboardListener
         ashTalk:Load("Sounds/Ash-letsgo.ogg")
         ashTalk:SetVolume(0.8)
         ashTalk:Play()
+        
+        colorpball1:SetColor(255, 0, 0, 1)
+        pball1:LoadSphere(5,5,5, colorpball1)
+        //pball1:Load("Models/pokeball.obj")
+        pball1:Scale(0.75, 0.75, 0.75)
+        pball1:SetPosition(0, 0, 15)
+        Add(pball1)
+
+        pball1Sound:Load("Sounds/pokeball.ogg")
+        pball1Sound:SetVolume(0)
+        pball1Sound:EnableLooping()
+        pball1Sound:EnableDoppler()      
+             pball1Sound:Play()
+        
  
+        Color blue
+        blue = blue:Blue()
+        goal:LoadBox(50,5,5, blue)
+        goal:SetPosition(0, 0, 50)
+        Add(goal)
+        gameOverZone:SetSize(30,10)
+        gameOverZone:SetPosition(0,0,50)
 
-
-
-
+        Color yellow
+        yellow:SetColor(255,255,254,0.8) 
+        floor:LoadBox(50,5,60, yellow)
+        floor:SetPosition(0, -5, 20)
+        Add(floor)
 
 
 
@@ -168,17 +192,12 @@ class Main is Game, KeyboardListener
 
         // Moves the character every update depending on the values of the 3 fields
 
- //           camera:RotateAround(pikachu:GetGlobalPosition(), yAxis, 3)
         pikachu:Move(positionX*seconds, positionY*seconds, positionZ*seconds)
         camera:SetPosition(pikachu:GetPosition():GetX(),pikachu:GetPosition():GetY()+4,pikachu:GetPosition():GetZ()-3)
 
- //       integer pikachuTalkTimer = 0
- //       if pikachuTalkTimer = 0
-     //TalkPikachu()
- //       pikachuTalkRandom:RandomIntegerBetween(5, 10)
- //       end
- end
+        pokeball1(seconds)
 
+ end
 
     action PressedKey(KeyboardEvent event)
         if event:keyCode = event:UP
@@ -233,6 +252,12 @@ class Main is Game, KeyboardListener
             TalkPikachu()
             end
             facing = 4
+        elseif event:keyCode = event:H
+            pikachu:SetPosition(0, 0, 0)
+        elseif event:keyCode = event:X
+            Exit()
+        elseif event:keyCode = event:Q
+            Exit()
         end
     end
 
@@ -244,27 +269,27 @@ class Main is Game, KeyboardListener
     end
 
     action MoveForward(number speed) 
-        positionX = speed       // we move forward
-        positionY = 0
-        positionZ = 0
-    end
-
-    action MoveBackward(number speed)
-        positionX = -speed       // we move forward
-        positionY = 0
-        positionZ = 0    
-    end
-    
-    action StrafeLeft(number speed)
         positionX = 0      // we move forward
         positionY = 0
         positionZ = speed
     end
 
-    action StrafeRight(number speed)
+    action MoveBackward(number speed)
         positionX = 0      // we move forward
         positionY = 0
-        positionZ = -speed
+        positionZ = -speed    
+    end
+    
+    action StrafeLeft(number speed)
+        positionX = -speed      // we move forward
+        positionY = 0
+        positionZ = 0
+    end
+
+    action StrafeRight(number speed)
+        positionX = speed      // we move forward
+        positionY = 0
+        positionZ = 0
     end
 
     action StopCharacter()
@@ -279,5 +304,43 @@ class Main is Game, KeyboardListener
         pikachuTalk:Play()
     end
 
+
+    action pokeball1(number seconds)
+        pball1:Move(seconds * 5, 0, 0)
+
+           if pball1:GetX() >  15// -30 is the Z-Axis position of the left wall 
+                Remove(pball1) // we remove it temporarly of the scene
+                pball1:SetX(-15) // the starting point
+                Add(pball1) // we put it again on the scene
+            end
+
+
+            
+            if pikachu:GetPosition():GetZ() - 7 < pball1:GetZ() and pikachu:GetPosition():GetZ() + 7 > pball1:GetZ()
+                /* if the character is near a box we play the sound car */
+            
+            pball1Sound:SetVolume(1.0)
+            pball1Sound:SetListenerPosition(pikachu:GetPosition())
+            pball1Sound:SetListenerDirection(camera:GetDirection())
+            pball1:Add(pball1Sound)            
+            else
+            pball1Sound:SetVolume(0)
+            end
+    end
+
+
+    action IsNearCar(Model pikachu, Model pball1, Audio3D pballSound) returns boolean
+        pballSound:SetListenerDirection(camera:GetDirection())
+        return pikachu:GetPosition():GetX() < pball1:GetX() + 5 and pikachu:GetPosition():GetX() > pball1:GetX() - 5
+        and pikachu:GetPosition():GetZ() < pball1:GetZ() + 5 and pikachu:GetPosition():GetZ() > pball1:GetZ() - 5
+    end
+
+    action IsColliding(Model pikachu, Model pball1) returns boolean
+        if pikachu:GetX() < pball1:GetX()+(pball1:GetWidth()/4) and pikachu:GetX() > pball1:GetX()-(pball1:GetWidth()/4) and pikachu:GetZ() < pball1:GetZ()+(pball1:GetDepth()/4) and pikachu:GetZ() > pball1:GetZ()-(pball1:GetDepth()/4)
+            return true
+        else
+            return false
+        end
+    end
 
 end
